@@ -4,7 +4,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import RestaurantSelectionScreen from '../screens/RestaurantSelectionScreen';
 import MenuManagementScreen from '../screens/MenuManagementScreen';
 import AddEditMenuScreen from '../screens/AddEditMenuScreen';
-import SplitScreen from '../screens/SplitScreen'; // If you're using SplitScreen for menu editing
+import SplitScreen from '../screens/SplitScreen'; 
+import OnboardBrandScreen from '../screens/OnboardBrandScreen';  // New screen
+import AddAdScreen from '../screens/AddAdScreen';  // New screen
 
 const Stack = createStackNavigator();
 
@@ -35,6 +37,18 @@ export default function AppNavigator() {
           name="SplitScreen" 
           component={SplitScreen} 
           options={{ title: 'Category and Dish Management' }} 
+        />
+        {/* Onboard Brand Screen */}
+        <Stack.Screen 
+          name="OnboardBrand" 
+          component={OnboardBrandScreen} 
+          options={{ title: 'Onboard a Brand' }} 
+        />
+        {/* Add Ad Screen */}
+        <Stack.Screen 
+          name="AddAdScreen" // Make sure the name matches what you're using in the navigation
+          component={AddAdScreen} 
+          options={{ title: 'Add New Ad' }} 
         />
       </Stack.Navigator>
     </NavigationContainer>

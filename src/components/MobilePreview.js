@@ -6,9 +6,20 @@ import { MenuContext } from '../context/MenuContext';
 const PAGE_DISH_LIMIT = 5; // Limit the number of dishes per page
 
 export default function MobilePreview({ restaurantId, menuId }) {
-  const { restaurants, loading, API_URL } = useContext(MenuContext);
+  const { loading, API_URL } = useContext(MenuContext);  // Removed restaurants from context
+  const [restaurant, setRestaurant] = useState(null);  // State to hold restaurant data
   const [qrCodeUrl, setQrCodeUrl] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
+
+  // Fetch the latest restaurant data from the API
+  const fetchRestaurantData = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/restaurants/${restaurantId}`);
+      setRestaurant(response.data);
+    } catch (error) {
+      console.error("Error fetching restaurant data:", error);
+    }
+  };
 
   // Generate QR code by calling the backend
   const generateQRCode = async () => {
@@ -21,24 +32,16 @@ export default function MobilePreview({ restaurantId, menuId }) {
     }
   };
 
+  // Fetch restaurant data when the component mounts
   useEffect(() => {
-    // Ensure restaurants data is available
-    if (!restaurants || restaurants.length === 0) {
-      console.error('No restaurants found.');
-    }
-  }, [restaurants]);
+    fetchRestaurantData();  // Fetch restaurant data on component mount
+  }, [restaurantId]);  // Re-fetch when restaurantId changes
 
-  if (loading) {
+  if (loading || !restaurant) {
     return <Text>Loading...</Text>;  // Show loading message while fetching data
   }
 
-  // Wait for restaurants to be populated before trying to find the restaurant and menu
-  if (!restaurants || restaurants.length === 0) {
-    return <Text style={styles.errorText}>Loading restaurants...</Text>;
-  }
-
-  const restaurant = restaurants.find((rest) => rest._id === restaurantId);
-  const menu = restaurant ? restaurant?.menus.find((m) => m.id === menuId) : null;
+  const menu = restaurant.menus.find((m) => m.id === menuId);
 
   if (!menu) {
     return <Text style={styles.errorText}>Menu not found</Text>;
@@ -50,7 +53,7 @@ export default function MobilePreview({ restaurantId, menuId }) {
         
         {/* Render Restaurant/Cafe Info on the First Page */}
         <View style={styles.restaurantContainer}>
-          <Text style={styles.restaurantName}>{restaurant?.name}</Text>
+          <Text style={styles.restaurantName}>{restaurant.name}</Text>  {/* Updated to use fetched restaurant data */}
           <Text style={styles.restaurantLocation}>{restaurant.location}</Text>
           <Text style={styles.menuName}>{menu.name} Menu</Text>
         </View>
@@ -60,7 +63,7 @@ export default function MobilePreview({ restaurantId, menuId }) {
             <View key={categoryIndex} style={styles.page}>
               <Text style={styles.categoryTitle}>{category.name}</Text>
 
-              {category?.dishes?.map((dish, dishIndex) => {
+              {category.dishes.map((dish, dishIndex) => {
                 return (
                   <View key={dishIndex} style={styles.dishContainer}>
                     <Text style={styles.dishName}>{dish.name}</Text>

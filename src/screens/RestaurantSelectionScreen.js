@@ -12,6 +12,7 @@ export default function RestaurantSelectionScreen({ navigation }) {
       const newRestaurant = {
         name: newRestaurantName,
         location: newRestaurantLocation,
+        menus: []
       };
       addRestaurant(newRestaurant);
       setNewRestaurantName('');
@@ -51,6 +52,16 @@ export default function RestaurantSelectionScreen({ navigation }) {
             />
           </View>
         )}
+      />
+
+      {/* Add Buttons for Ad Management */}
+      <Button 
+        title="Onboard Brands" 
+        onPress={() => navigation.navigate('OnboardBrand')} // Navigate to Onboard Brand Screen
+      />
+      <Button 
+        title="Add Ads" 
+        onPress={() => navigation.navigate('AddAdScreen')} // Navigate to Add Ad Screen
       />
     </View>
   );

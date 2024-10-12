@@ -8,11 +8,12 @@ export const MenuProvider = ({ children }) => {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
   const [loading, setLoading] = useState(true); // Add loading state
 
-  const API_URL = "http://127.0.0.1:8000"; // Replace with your actual backend URL
+  const API_URL = "http://0.0.0.0:8000";
 
   // Fetch all restaurants/cafes
   const fetchRestaurants = async () => {
     try {
+      console.log("API URL IS" , API_URL)
       setLoading(true);  // Set loading to true before fetching
       const response = await axios.get(`${API_URL}/restaurants`);
       setRestaurants(response.data);
