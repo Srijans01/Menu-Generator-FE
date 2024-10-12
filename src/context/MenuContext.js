@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '@env';
+
 
 export const MenuContext = createContext();
 
@@ -7,8 +9,6 @@ export const MenuProvider = ({ children }) => {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
   const [loading, setLoading] = useState(true); // Add loading state
-
-  const API_URL = "http://0.0.0.0:8000";
 
   // Fetch all restaurants/cafes
   const fetchRestaurants = async () => {
