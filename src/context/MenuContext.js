@@ -1,9 +1,10 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { API_URL } from '@env';
 
 
 export const MenuContext = createContext();
+
+const API_URL = process.env.API_URL;
 
 export const MenuProvider = ({ children }) => {
   const [restaurants, setRestaurants] = useState([]);
