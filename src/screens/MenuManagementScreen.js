@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Modal } from 'react-native';
 import axios from 'axios'; 
 import { MenuContext } from '../context/MenuContext';
 
@@ -13,6 +13,7 @@ export default function MenuManagementScreen({ route, navigation }) {
   const [welcomeText, setWelcomeText] = useState('');
   const [editingRestaurantName, setEditingRestaurantName] = useState(false);
   const [restaurantName, setRestaurantName] = useState('');
+  const [isAddingMenu, setIsAddingMenu] = useState(false); // New state for adding menu
 
   useEffect(() => {
     const fetchRestaurantData = async () => {
@@ -35,32 +36,30 @@ export default function MenuManagementScreen({ route, navigation }) {
   }, [restaurantId, API_URL]);
 
   const handleAddMenu = () => {
-    setIsModalVisible(true);
+    setIsAddingMenu(true); // Show add menu form
+    setMenuName('');
+    setWelcomeText('');
   };
 
   const handleCreateMenu = async () => {
     if (menuName.trim()) {
       try {
-        const response = await axios.post(`${API_URL}/restaurants/${restaurantId}/menus`, { name: menuName.trim() });
-        const newMenuId = response.data.menu_id;
-        setIsModalVisible(false);
+        const response = await axios.post(`${API_URL}/restaurants/${restaurantId}/menus`, { name: menuName.trim(), welcome_text: welcomeText.trim() });
+        setIsAddingMenu(false); // Hide add menu form
         setMenuName('');
+        setWelcomeText('');
         const restaurantResponse = await axios.get(`${API_URL}/restaurants/${restaurantId}`);
         setRestaurant(restaurantResponse.data);
-        navigation.navigate('AddEditMenu', { restaurantId, menuId: newMenuId });
       } catch (error) {
         console.error("Error creating menu:", error);
       }
-    } else {
-      setIsModalVisible(false);
-      setMenuName('');
     }
   };
 
   const handleEditMenu = async (menuId) => {
     if (menuName.trim()) {
       try {
-        const response = await axios.put(`${API_URL}/restaurants/${restaurantId}/menus/${menuId}`, {
+        await axios.put(`${API_URL}/restaurants/${restaurantId}/menus/${menuId}`, {
           new_name: menuName.trim(),
           welcome_text: welcomeText.trim()
         });
@@ -83,6 +82,11 @@ export default function MenuManagementScreen({ route, navigation }) {
 
   const cancelEditing = () => {
     setEditingMenuId(null);
+    setMenuName('');
+  };
+
+  const cancelAddingMenu = () => {
+    setIsAddingMenu(false);
     setMenuName('');
   };
 
@@ -137,10 +141,9 @@ export default function MenuManagementScreen({ route, navigation }) {
           </TouchableOpacity>
         </View>
       )}
-
-      {/* Add some margin between the cafe name and the menu list */}
+  
       <View style={styles.separator} />
-
+  
       <FlatList
         data={restaurant?.menus}
         keyExtractor={(item) => item.id}
@@ -164,7 +167,7 @@ export default function MenuManagementScreen({ route, navigation }) {
                   <TouchableOpacity onPress={() => handleEditMenu(item.id)} style={styles.saveButton}>
                     <Text style={styles.buttonText}>Save</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setEditingMenuId(null)} style={styles.cancelButton}>
+                  <TouchableOpacity onPress={cancelEditing} style={styles.cancelButton}>
                     <Text style={styles.buttonText}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
@@ -186,14 +189,47 @@ export default function MenuManagementScreen({ route, navigation }) {
           </View>
         )}
       />
+  
+      {/* Add New Menu Button at the Bottom */}
+      <TouchableOpacity onPress={handleAddMenu} style={styles.addButton}>
+        <Text style={styles.buttonText}>Add New Menu</Text>
+      </TouchableOpacity>
+  
+      {/* Adding New Menu Form */}
+      {isAddingMenu && (
+        <View style={styles.itemContainer}>
+          <TextInput
+            style={styles.input}
+            value={menuName}
+            onChangeText={setMenuName}
+            placeholder="Enter Menu Name"
+          />
+          <TextInput
+            style={styles.input}
+            value={welcomeText}
+            onChangeText={setWelcomeText}
+            placeholder="Enter Welcome Text"
+          />
+          <View style={styles.buttonRow}>
+            <TouchableOpacity onPress={handleCreateMenu} style={styles.saveButton}>
+              <Text style={styles.buttonText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={cancelAddingMenu} style={styles.cancelButton}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
+  
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#f8f9fa', // Light background color for better contrast
   },
   title: {
     fontSize: 24,
@@ -202,63 +238,74 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     marginBottom: 16,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-    paddingBottom: 8,
   },
   menuName: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 4,
   },
   input: {
     borderWidth: 1,
-    padding: 8,
-    marginBottom: 16,
-    borderRadius: 4,
-    borderColor: '#ddd',
+    padding: 10,
+    marginBottom: 12,
+    borderRadius: 5,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 16,
   },
   separator: {
-    marginVertical: 24,  // Space between the cafe name and the menu list
+    height: 1,
+    backgroundColor: '#ccc',
+    marginVertical: 16,
   },
-  buttonRow: {
-    flexDirection: 'row',
+  addButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignSelf: 'center',
+    marginTop: 20, // Add spacing above the button
+    marginBottom: 20, // Additional space at the bottom
   },
   editButton: {
-    marginLeft: 8,
-    backgroundColor: '#4CAF50',
-    paddingVertical: 6,
+    backgroundColor: '#17a2b8',
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 4,
+    borderRadius: 5,
+    marginLeft: 8,
   },
   navigateButton: {
-    marginLeft: 8,
-    backgroundColor: '#2196F3',
-    paddingVertical: 6,
+    backgroundColor: '#007bff',
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 4,
+    borderRadius: 5,
+    marginLeft: 8,
   },
   saveButton: {
-    marginLeft: 8,
-    backgroundColor: '#4CAF50',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
+    backgroundColor: '#28a745',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 5,
+    marginRight: 8,
   },
   cancelButton: {
-    marginLeft: 8,
-    backgroundColor: '#F44336',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
+    backgroundColor: '#dc3545',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 5,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
+    textAlign: 'center',
   },
   restaurantName: {
     fontSize: 24,
@@ -267,5 +314,19 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 16,
     color: '#666',
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
   },
 });
