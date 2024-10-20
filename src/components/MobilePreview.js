@@ -54,7 +54,7 @@ export default function MobilePreview({ restaurantId, menuId }) {
         {/* Render Restaurant/Cafe Info on the First Page */}
         <View style={styles.restaurantContainer}>
           <Text style={styles.restaurantName}>{restaurant.name}</Text>  {/* Updated to use fetched restaurant data */}
-          <Text style={styles.restaurantLocation}>{restaurant.location}</Text>
+          <Text style={styles.restaurantLocation}>{restaurant.location || "Location not available"}</Text>
           <Text style={styles.menuName}>{menu.name} Menu</Text>
         </View>
 
@@ -67,7 +67,7 @@ export default function MobilePreview({ restaurantId, menuId }) {
                 return (
                   <View key={dishIndex} style={styles.dishContainer}>
                     <Text style={styles.dishName}>{dish.name}</Text>
-                    <Text style={styles.dishPrice}>${dish.price}</Text>
+                    <Text style={styles.dishPrice}>₹{dish.price?.toString()}</Text>
                   </View>
                 );
               })}
