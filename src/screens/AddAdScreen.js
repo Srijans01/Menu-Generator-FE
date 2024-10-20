@@ -81,7 +81,7 @@ export default function AddAdScreen({ route, navigation }) {
           />
           <TextInput
             style={styles.input}
-            placeholder="TTL (in seconds)"
+            placeholder="Expiry (in seconds)"
             value={ttl}
             onChangeText={setTtl}
             keyboardType="numeric"
@@ -134,7 +134,7 @@ export default function AddAdScreen({ route, navigation }) {
               />
               <TextInput
                 style={styles.input}
-                placeholder="TTL (in seconds)"
+                placeholder="Expiry (in seconds)"
                 value={ttl}
                 onChangeText={setTtl}
                 keyboardType="numeric"
