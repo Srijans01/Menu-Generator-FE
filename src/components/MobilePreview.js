@@ -1,15 +1,18 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { ScrollView, View, Text, StyleSheet, Button, Image, Linking } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, Button, Image, Linking, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { MenuContext } from '../context/MenuContext';
 
 const PAGE_DISH_LIMIT = 5; // Limit the number of dishes per page
 
 export default function MobilePreview({ restaurantId, menuId }) {
-  const { loading, API_URL } = useContext(MenuContext);  // Removed restaurants from context
-  const [restaurant, setRestaurant] = useState(null);  // State to hold restaurant data
+  const { restaurants, loading, API_URL } = useContext(MenuContext);
+  // const [restaurant, setRestaurant] = useState(null);
   const [qrCodeUrl, setQrCodeUrl] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [qrLoading, setQrLoading] = useState(false);
+
+  const restaurant = restaurants.find(rest => rest._id === restaurantId);
 
   // Fetch the latest restaurant data from the API
   const fetchRestaurantData = async () => {
@@ -23,12 +26,15 @@ export default function MobilePreview({ restaurantId, menuId }) {
 
   // Generate QR code by calling the backend
   const generateQRCode = async () => {
+    setQrLoading(true); // Start loading
     try {
       const response = await axios.get(`${API_URL}/restaurants/${restaurantId}/menus/${menuId}/generate_qr`);
       setQrCodeUrl(response.data.qr_code_url);
       setPdfUrl(response.data.pdf_url); // Store the PDF URL for reference if needed
     } catch (error) {
       console.error("Error generating QR code:", error);
+    } finally {
+      setQrLoading(false); // Stop loading
     }
   };
 
@@ -79,7 +85,12 @@ export default function MobilePreview({ restaurantId, menuId }) {
         {/* Button to generate QR Code */}
         <View style={styles.qrContainer}>
           <Button title="Generate QR Code" onPress={generateQRCode} />
-          {qrCodeUrl && (
+          {qrLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#0000ff" />
+              <Text style={styles.loadingText}>Generating...</Text>
+            </View>
+          ) : qrCodeUrl ? (
             <>
               <Text style={styles.qrText}>Scan to View the PDF:</Text>
               <Image source={{ uri: qrCodeUrl }} style={styles.qrImage} />
@@ -94,7 +105,7 @@ export default function MobilePreview({ restaurantId, menuId }) {
                 </Text>
               )}
             </>
-          )}
+          ) : null}
         </View>
       </View>
     </ScrollView>
@@ -175,6 +186,15 @@ const styles = StyleSheet.create({
   qrContainer: {
     alignItems: 'center',
     marginTop: 32,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    marginLeft: 8,
   },
   qrText: {
     fontSize: 16,
